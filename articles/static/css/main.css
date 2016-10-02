@@ -29,3 +29,11 @@ h1, h2, h3, h4 {
 .content {
     margin: 40px;
 }
+
+.delete-red {
+    color: #9b2525;
+}
+
+.delete-red:hover {
+    color: #bf4a4a;
+}

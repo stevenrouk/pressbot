@@ -42,4 +42,7 @@ class PressReleaseUpdate(UpdateView):
 
 class PressReleaseDelete(DeleteView):
     model = PressRelease
-    success_url = reverse_lazy('index')
+    success_url = reverse_lazy('articles:index')
+
+    def get(self, request, *args, **kwargs):
+        return self.post(request, *args, **kwargs)

@@ -4,13 +4,12 @@
     <div>
         <h1>Press Release URLS</h1>
         {% if articles %}
-            <p>
             {% for article in articles %}
-                Article ID #{{ article.pk }}: <a href="{{ article.url }}">{{ article.url }}</a><br />
+                <p>Article ID #{{ article.pk }}: <a href="{{ article.url }}">{{ article.url }}</a>{% if user.is_authenticated %} <a href="{% url 'articles:press-release-delete' article.pk %}"><span class="glyphicon glyphicon-remove delete-red"></span></a>{% endif %}</p>
             {% endfor %}
-            </p>
-        {% else %}
-            <p>No press release URLs yet.</p>
+        {% endif %}
+        {% if user.is_authenticated %}
+            <p><a href="{% url 'articles:press-release-add' %}"><span class="glyphicon glyphicon-plus"></span> Add Press Release</a></p>
         {% endif %}
     </div>
 {% endblock %}
