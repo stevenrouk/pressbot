@@ -1,10 +1,8 @@
 import bs4 as BeautifulSoup
-import datetime
 import requests
 
 from django.db import models
 from django.urls import reverse
-from django.utils import timezone
 from django.utils.encoding import python_2_unicode_compatible
 
 
@@ -13,13 +11,21 @@ class PressRelease(models.Model):
     url = models.URLField()
     html = models.TextField(default='')
     p_tag_text = models.TextField(default='')
+    p_tag_text_char_count = models.IntegerField(default=0)
+    p_tag_text_word_count = models.IntegerField(default=0)
 
     def __str__(self):
         return self.url
 
     def save(self):
-        self.html = self.get_html(self.url)
-        self.p_tag_text = self.get_p_tag_text(self.html)
+        if not self.html:
+            self.html = self.get_html(self.url)
+        if not self.p_tag_text:
+            self.p_tag_text = self.get_p_tag_text(self.html)
+        if self.p_tag_text_char_count == 0:
+            self.p_tag_text_char_count = len(self.p_tag_text)
+        if self.p_tag_text_word_count == 0:
+            self.p_tag_text_word_count = len(self.p_tag_text.split())
         super(PressRelease, self).save()
 
     def get_absolute_url(self):
