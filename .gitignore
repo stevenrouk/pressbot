@@ -3,3 +3,5 @@ venv
 *.pyc
 staticfiles
 db.sqlite3
+data
+*.html
