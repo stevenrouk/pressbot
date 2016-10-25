@@ -9,6 +9,7 @@
                 <p>{{ article.p_tag_text }}</p>
                 <p>Character count: {{ article.p_tag_text_char_count }}</p>
                 <p>Word count: {{ article.p_tag_text_word_count }}</p>
+                <p>Sentiment polarity score: {{ article.polarity_score }}</p>
                 <hr />
             {% endfor %}
         {% endif %}
