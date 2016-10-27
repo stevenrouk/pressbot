@@ -10,9 +10,6 @@ from .forms import PressReleaseURLForm
 from .models import PressRelease
 
 
-# Amazing resource for class-based views: http://ccbv.co.uk/
-
-
 class IndexView(generic.ListView):
     model = PressRelease
     template_name = 'articles/index.html'
