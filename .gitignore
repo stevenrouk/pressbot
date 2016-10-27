@@ -9,3 +9,4 @@ data
 __pycache__
 .DS_Store
 resources.txt
+settings_secret.py
