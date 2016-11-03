@@ -3,6 +3,7 @@ venv
 *.pyc
 staticfiles
 db.sqlite3
+data_news
 data
 *.html
 *~
@@ -10,3 +11,5 @@ __pycache__
 .DS_Store
 resources.txt
 settings_secret.py
+.ipynb_checkpoints
+config*
