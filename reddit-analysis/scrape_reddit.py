@@ -3,6 +3,7 @@ import os
 import praw
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+import sys
 
 from config import REDDIT_USER_AGENT, SQLITE_DATABASE_URI
 from db_create import Base, Comment, Post
@@ -53,17 +54,30 @@ def get_posts(subreddit='vegan', post_type='hot', limit=1000):
 def save_posts(posts):
     session = get_db_session()
 
-    # TODO: check for uniqueness. Only insert things we haven't seen before.
     # TODO: create a constant data ingest
     for post in posts:
-        # Add post
-        new_post = get_object(session, Post, reddit_id=)    # TODO: fill in unique reddit object id
+        # Add post & author
+        new_post = get_object(session, Post, reddit_id=post.id)
         if not new_post:
+            # Add author first
+            new_author = get_object(session, Author, reddit_id=post.author.id)
+            if not new_author:
+                author = new_post.author
+                new_author = Author(
+                    reddit_id=author.id,
+                    reddit_fullname=author.fullname,
+                    name=author.name,
+                    created_date=author.created,
+                )
+                session.add(new_author)
+                session.commit()
+
+            # Add post
             new_post = Post(
-                reddit_id=,    # TODO: fill in unique reddit object id
-                author_name=,    # TODO: fill in author name
-                author_id=,    # TODO: fill in author id
-                published_date=,    # TODO: fill in published date
+                reddit_id=post.id,
+                reddit_fullname=post.fullname,
+                author=new_author,
+                created_date=post.created,
                 title=post.title,
                 url=post.url,
                 text=post.text,
@@ -77,16 +91,28 @@ def save_posts(posts):
 
         # Add comments
         for comment in post.comments:
-            new_comment = get_object(session, Comment, reddit_id=)    # TODO: fill in unique reddit object id
+            new_comment = get_object(session, Comment, reddit_id=comment.id)
             if not new_comment:
-                new_comment = Comment(
-                    reddit_id=,    # TODO: fill in
-                    author_name=,    # TODO: fill in
-                    author_id=,    # TODO: fill in
-                    published_date=,    # TODO: fill in
-                    text=,    # TODO: fill in
-                    post=new_post,
+                # Add author first
+                new_author = get_object(session, Author, reddit_id=post.author.id)
+                if not new_author:
+                    author = new_post.author
+                    new_author = Author(
+                        reddit_id=author.id,
+                        reddit_fullname=author.fullname,
+                        name=author.name,
+                        created_date=author.created,
+                    )
+                    session.add(new_author)
+                    session.commit()
 
+                # Add comment
+                new_comment = Comment(
+                    reddit_id=comment.id,
+                    created_date=comment.created,
+                    text=comment.body,
+                    author=new_author,
+                    post=new_post,
                 )
                 session.add(new_comment)
                 session.commit()
@@ -97,13 +123,13 @@ def save_posts(posts):
 if __name__ == '__main__':
     # TODO: Check script args.
     #     - If we tell it to run continuously, do that, but the default is a small test.
-    test = True
-    if test:
-        posts = get_posts(subreddit='vegan', post_type='hot', limit=10)
-        save_posts(posts)
-    else:
+    if sys.argv[1] == 'continuous':
         while True:
             for post_type in ('hot', 'new', 'top'):
                 posts = get_posts(post_type)
                 save_posts(posts)
-    
+        posts = get_posts(subreddit='vegan', post_type='hot', limit=10)
+        save_posts(posts)
+    else:
+        posts = get_posts(subreddit='vegan', post_type='hot', limit=10)
+        save_posts(posts)
