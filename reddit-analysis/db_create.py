@@ -13,18 +13,15 @@ class Post(Base):
     id = Column(Integer, primary_key=True)
     reddit_id = Column(String(250), nullable=False)
     reddit_fullname = Column(String(250))
-    author_name = Column(String(250))
-    author_id = Column(String(250))
-    published_date = Column(DateTime)
+    created_date = Column(DateTime)
     title = Column(String(250))
     url = Column(String(250))
-    text = Column(String(250))
     num_comments = Column(Integer)
     score = Column(Integer)
     upvotes = Column(Integer)
     downvotes = Column(Integer)
     comments = relationship('Comment', backref='post')
-    author = relationship('Author', backref=backref('post', uselist=False))
+    author = relationship('Author', backref='post')
 
 class Comment(Base):
     __tablename__ = 'comment'
@@ -32,9 +29,10 @@ class Comment(Base):
     id = Column(Integer, primary_key=True)
     reddit_id = Column(String(250), nullable=False)
     reddit_fullname = Column(String(250))
-    published_date = Column(DateTime)
+    created_date = Column(DateTime)
     text = Column(String(250))
     post_id = Column(Integer, ForeignKey('post.id'))
+    author = relationship('Author', backref='comment')
 
 class Author(Base):
     __tablename__ = 'author'
@@ -45,6 +43,7 @@ class Author(Base):
     name = Column(String(250))
     created_date = Column(DateTime)
     post_id = Column(Integer, ForeignKey('post.id'))
+    comment_id = Column(Integer, ForeignKey('comment.id'))
 
 # Create database
 engine = create_engine(SQLITE_DATABASE_URI)
