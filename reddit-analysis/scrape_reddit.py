@@ -57,10 +57,18 @@ def get_posts(subreddit='vegan', post_type='hot', limit=1000):
     return posts
 
 def save_posts(posts):
+    # set up counts
+    post_count = 0
+    comment_count = 0
+    author_count = 0
+    total_comment_count = 0
+
+    # get db session
     session = get_db_session()
 
     # TODO: create a constant data ingest
     for post in posts:
+        comment_count = 0
         # Add post & author
         new_post = get_object(session, Post, reddit_id=post.id)
         if not new_post:
@@ -76,6 +84,8 @@ def save_posts(posts):
                 )
                 session.add(new_author)
                 session.commit()
+                author_count += 1
+                print('wrote author #{}'.format(author_count))
 
             # Add post
             new_post = Post(
@@ -92,6 +102,8 @@ def save_posts(posts):
             )
             session.add(new_post)
             session.commit()
+            post_count += 1
+            print('wrote post #{}'.format(post_count))
 
         # Add comments
         post.replace_more_comments(limit=None, threshold=0)
@@ -99,17 +111,22 @@ def save_posts(posts):
             new_comment = get_object(session, Comment, reddit_id=comment.id)
             if not new_comment:
                 # Add author first
-                new_author = get_object(session, Author, reddit_id=post.author.id)
-                if not new_author:
-                    author = new_post.author
-                    new_author = Author(
-                        reddit_id=author.id,
-                        reddit_fullname=author.fullname,
-                        name=author.name,
-                        created_date=datetime.datetime.fromtimestamp(author.created),
-                    )
-                    session.add(new_author)
-                    session.commit()
+                try:
+                    new_author = get_object(session, Author, reddit_id=comment.author.id)
+                    if not new_author:
+                        author = comment.author
+                        new_author = Author(
+                            reddit_id=author.id,
+                            reddit_fullname=author.fullname,
+                            name=author.name,
+                            created_date=datetime.datetime.fromtimestamp(author.created),
+                        )
+                        session.add(new_author)
+                        session.commit()
+                        author_count += 1
+                        print('wrote author #{}'.format(author_count))
+                except AttributeError as e:
+                    print('No author: {}'.format(e), exc_info=True)
 
                 # Add comment
                 new_comment = Comment(
@@ -121,6 +138,14 @@ def save_posts(posts):
                 )
                 session.add(new_comment)
                 session.commit()
+                comment_count += 1
+                total_comment_count += 1
+                print('wrote comment #{0} (#{1} overall)'.format(comment_count, total_comment_count))
+
+    print("""
+Total Posts: {0}\n\tTotal Comments: {1}\n\t Total Authors: {2}\n
+""".format(post_count, total_comment_count, author_count))
+    print('\n\n*****************************\n\n')
 
 
 def mvp_scrape(subreddit='vegan', post_type='hot', limit=10):
@@ -197,7 +222,7 @@ if __name__ == '__main__':
     #     - If we tell it to run continuously, do that, but the default is a small test.
     
     if len(sys.argv) == 1:
-        posts = get_posts(subreddit='vegan', post_type='hot', limit=10)
+        posts = get_posts(subreddit='vegan', post_type='hot', limit=1000)
         save_posts(posts)
     elif sys.argv[1] == 'continuous':
         while True:
